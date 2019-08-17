@@ -11,6 +11,8 @@
 	   :ring-buffer-available
 	   :ring-buffer-capacity
 	   :ring-buffer-empty-p
+	   :ring-buffer-alien
+	   :ring-buffer-write-locations
 	   :make-ring-buffer
 	   :dump-ring-buffer-characters
 	   :dump-ring-buffer-bytes))

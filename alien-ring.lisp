@@ -17,6 +17,20 @@
 (defun make-ring-buffer (size)
   (make-instance 'ring-buffer :capacity size))
 
+(defun ring-buffer-alien (ringbuf)
+  (slot-value ringbuf 'buffer))
+
+(defun ring-buffer-write-locations (ringbuf n)
+  (let ((max-allowed-write-size (min n (ring-buffer-available ringbuf))))
+    (cond
+      ((> (+ (ring-buffer-wr ringbuf) max-allowed-write-size)
+	  (ring-buffer-capacity ringbuf))
+       (let ((part1 (- (ring-buffer-capacity ringbuf) (ring-buffer-wr ringbuf))))
+	 (list (cons (ring-buffer-wr ringbuf) part1)
+	       (cons 0 (- max-allowed-write-size part1)))))
+      (t (list (cons (ring-buffer-wr ringbuf)
+		     (- (ring-buffer-capacity ringbuf) (ring-buffer-wr ringbuf))))))))
+
 (defun ring-buffer-size (ringbuf)
   (with-slots (read-index write-index) ringbuf
     (- write-index read-index)))
