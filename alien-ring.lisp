@@ -32,8 +32,8 @@
 		     (- (ring-buffer-capacity ringbuf) (ring-buffer-wr ringbuf))))))))
 
 (defun ring-buffer-size (ringbuf)
-  (with-slots (read-index write-index) ringbuf
-    (- write-index read-index)))
+  (with-slots (read-index write-index capacity) ringbuf
+    (logand (- write-index read-index) (1- capacity))))
 
 (defun ring-buffer-empty-p (ringbuf)
   (zerop (ring-buffer-size ringbuf)))
@@ -42,15 +42,17 @@
   (= (ring-buffer-size ringbuf) (slot-value ringbuf 'capacity)))
 
 (defun ring-buffer-available (ringbuf)
-  (- (ring-buffer-capacity ringbuf) (ring-buffer-size ringbuf)))
+  (logand (- (ring-buffer-capacity ringbuf)
+	     (ring-buffer-size ringbuf))
+	  (1- (ring-buffer-capacity ringbuf))))
 
 (defun ring-buffer-advance-rd (ringbuf &optional (n 1))
   (with-slots (read-index capacity) ringbuf
-    (setf read-index (logand (+ read-index n) (1- (ash 1 32))))))
+    (setf read-index (logand (+ read-index n) (1- (ash 1 31))))))
 
 (defun ring-buffer-advance-wr (ringbuf &optional (n 1))
   (with-slots (write-index read-index capacity) ringbuf
-    (setf write-index (logand (+ write-index n) (1- (ash 1 32))))))
+    (setf write-index (logand (+ write-index n) (1- (ash 1 31))))))
 
 (defun ring-buffer-rd (ringbuf &optional (offset 0))
   (with-slots (read-index capacity) ringbuf
