@@ -48,11 +48,11 @@
 
 (defun ring-buffer-advance-rd (ringbuf &optional (n 1))
   (with-slots (read-index capacity) ringbuf
-    (setf read-index (logand (+ read-index n) (1- (ash 1 31))))))
+    (setf read-index (logand (+ read-index n) (1- (ash 1 32))))))
 
 (defun ring-buffer-advance-wr (ringbuf &optional (n 1))
   (with-slots (write-index read-index capacity) ringbuf
-    (setf write-index (logand (+ write-index n) (1- (ash 1 31))))))
+    (setf write-index (logand (+ write-index n) (1- (ash 1 32))))))
 
 (defun ring-buffer-rd (ringbuf &optional (offset 0))
   (with-slots (read-index capacity) ringbuf
