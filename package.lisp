@@ -13,6 +13,10 @@
 	   :ring-buffer-empty-p
 	   :ring-buffer-alien
 	   :ring-buffer-write-locations
+	   :ring-buffer-read-char
+	   :ring-buffer-read-byte
+	   :ring-buffer-write-char
+	   :ring-buffer-write-byte
 	   :make-ring-buffer
 	   :dump-ring-buffer-characters
 	   :dump-ring-buffer-bytes))

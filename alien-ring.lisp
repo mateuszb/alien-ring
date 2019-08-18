@@ -84,6 +84,22 @@
       (ring-buffer-advance-rd ringbuf)
       elem)))
 
+(defun ring-buffer-read-char (ringbuf)
+  (unless (zerop (ring-buffer-size ringbuf))
+    (code-char (read-single-element ringbuf))))
+
+(defun ring-buffer-read-byte (ringbuf)
+  (unless (zerop (ring-buffer-size ringbuf))
+    (read-single-element ringbuf)))
+
+(defun ring-buffer-write-char (ringbuf char)
+  (unless (zerop (ring-buffer-available ringbuf))
+    (write-single-element ringbuf (char-code char))))
+
+(defun ring-buffer-write-byte (ringbuf byte)
+  (unless (zerop (ring-buffer-available ringbuf))
+    (write-single-element ringbuf byte)))
+
 (defun peek-single-element (ringbuf offset)
   "Reads a single element at read-index + optional offset without advancing the read-index."
   (assert (not (ring-buffer-empty-p ringbuf)))
