@@ -10,7 +10,8 @@
 
 (defmethod initialize-instance :after ((buf ring-buffer) &key)
   (with-slots (buffer capacity) buf
-    (assert (< capacity (ash 1 31)))
+    (assert (and (< capacity (ash 1 31))
+		 (zerop (logand capacity (1- capacity)))))
     (setf buffer (foreign-alloc :uint8 :initial-element 0 :count capacity))))
 
 (defun make-ring-buffer (size)
@@ -74,10 +75,11 @@
   (assert (not (ring-buffer-full ringbuf)))
   (with-slots (buffer) ringbuf
     (setf (mem-aref buffer :uint8 (ring-buffer-wr ringbuf)) element)
-    (ring-buffer-advance-wr ringbuf)))
+    (ring-buffer-advance-wr ringbuf)
+    element))
 
 (defun read-single-element (ringbuf)
-  "Reads a single element at read-index and advances the read-index by 1."  
+  "Reads a single element at read-index and advances the read-index by 1."
   (assert (not (ring-buffer-empty-p ringbuf)))
   (with-slots (buffer) ringbuf
     (let ((elem (mem-aref buffer :uint8 (ring-buffer-rd ringbuf))))
@@ -100,11 +102,17 @@
   (unless (zerop (ring-buffer-available ringbuf))
     (write-single-element ringbuf byte)))
 
-(defun peek-single-element (ringbuf offset)
+(defun peek-single-element (ringbuf &optional (offset 0))
   "Reads a single element at read-index + optional offset without advancing the read-index."
   (assert (not (ring-buffer-empty-p ringbuf)))
   (with-slots (buffer) ringbuf
     (mem-aref buffer :uint8 (ring-buffer-rd ringbuf offset))))
+
+(defun ring-buffer-peek-char (ringbuf &optional (offset 0))
+  "Reads a single char at read-index + optional offset without advancing the read-index."
+  (assert (not (ring-buffer-empty-p ringbuf)))
+  (with-slots (buffer) ringbuf
+    (code-char (mem-aref buffer :uint8 (ring-buffer-rd ringbuf offset)))))
 
 (defun ring-buffer-write-byte-sequence (ringbuf seq)
   (let ((write-size (min (ring-buffer-available ringbuf) (length seq))))
@@ -120,7 +128,7 @@
   (map 'string #'code-char (ring-buffer-read-byte-sequence ringbuf n)))
 
 (defun ring-buffer-read-byte-sequence (ringbuf &optional n)
-  (let ((read-size (cond 
+  (let ((read-size (cond
 		     ((and (integerp n) (>= n 0))
 		      (min (ring-buffer-size ringbuf) n))
 		     (t (ring-buffer-size ringbuf)))))
@@ -153,6 +161,28 @@
 	 (when line
 	   (ring-buffer-advance-rd ringbuf 2)
 	   (return (car line))))))
+
+(defun ring-buffer-read-token (ringbuf &optional (separator #\space))
+  (let ((navail (ring-buffer-size ringbuf)))
+    ;; eat separators first
+    (loop for i from 0 below navail
+       for elem = (code-char (peek-single-element ringbuf))
+       then (code-char (peek-single-element ringbuf))
+       while (char= elem separator)
+       do
+	 (read-single-element ringbuf))
+
+    (setf navail (ring-buffer-size ringbuf))
+    ;; collect the token
+    (loop for i from 0 below navail
+       for elem = (code-char (peek-single-element ringbuf))
+       then (code-char (peek-single-element ringbuf))
+       when (not (char= elem separator))
+       collect (ring-buffer-read-char ringbuf) into token
+       until (char= elem separator)
+       finally
+	 (when token
+	   (return (map 'string #'identity token))))))
 
 (defun ring-buffer-read-line (ringbuf &optional (line-ending #\newline))
   (case line-ending

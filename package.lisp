@@ -17,6 +17,8 @@
 	   :ring-buffer-read-byte
 	   :ring-buffer-write-char
 	   :ring-buffer-write-byte
+	   :ring-buffer-read-token
+	   :ring-buffer-peek-char
 	   :make-ring-buffer
 	   :dump-ring-buffer-characters
 	   :dump-ring-buffer-bytes))
