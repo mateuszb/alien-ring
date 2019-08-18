@@ -122,7 +122,7 @@
        finally
 	 (when line
 	   (ring-buffer-advance-rd ringbuf 1)
-	   (return line)))))
+	   (return (car line))))))
 
 (defun read-line-crlf (ringbuf)
   (let ((navail (ring-buffer-size ringbuf)))
@@ -136,7 +136,7 @@
        finally
 	 (when line
 	   (ring-buffer-advance-rd ringbuf 2)
-	   (return line)))))
+	   (return (car line))))))
 
 (defun ring-buffer-read-line (ringbuf &optional (line-ending #\newline))
   (case line-ending
