@@ -35,11 +35,12 @@
   (let ((max-allowed-read-size (min n (ring-buffer-size ringbuf))))
     (cond
       ((> (+ (ring-buffer-rd ringbuf) max-allowed-read-size) (ring-buffer-capacity ringbuf))
-       (let ((part1 (- (ring-buffer-capacity ringbuf) (ring-buffer-rd ringbuf))))
+       (let ((part1 (- (ring-buffer-wr ringbuf) (ring-buffer-rd ringbuf))))
 	 (list (cons (ring-buffer-rd ringbuf) part1)
 	       (cons 0 (- max-allowed-read-size part1)))))
-      (t (list (cons (ring-buffer-rd ringbuf)
-		     (- (ring-buffer-size ringbuf) (ring-buffer-rd ringbuf))))))))
+      (t
+       (list (cons (ring-buffer-rd ringbuf)
+		   (ring-buffer-size ringbuf)))))))
 
 (defun ring-buffer-size (ringbuf)
   (with-slots (read-index write-index capacity) ringbuf
