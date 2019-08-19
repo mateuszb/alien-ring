@@ -35,7 +35,7 @@
   (let ((max-allowed-read-size (min n (ring-buffer-size ringbuf))))
     (cond
       ((> (+ (ring-buffer-rd ringbuf) max-allowed-read-size) (ring-buffer-capacity ringbuf))
-       (let ((part1 (- (ring-buffer-wr ringbuf) (ring-buffer-rd ringbuf))))
+       (let ((part1 (- (ring-buffer-capacity ringbuf) (ring-buffer-rd ringbuf))))
 	 (list (cons (ring-buffer-rd ringbuf) part1)
 	       (cons 0 (- max-allowed-read-size part1)))))
       (t
@@ -44,7 +44,7 @@
 
 (defun ring-buffer-size (ringbuf)
   (with-slots (read-index write-index capacity) ringbuf
-    (logand (- write-index read-index) (1- capacity))))
+    (logand (- write-index read-index) #xFFFFFFFF)))
 
 (defun ring-buffer-empty-p (ringbuf)
   (with-slots (read-index write-index) ringbuf
@@ -120,7 +120,8 @@
     (loop for elem across seq
        for i from 0 below write-size
        do
-	 (write-single-element ringbuf elem))))
+	 (write-single-element ringbuf elem))
+    write-size))
 
 (defun ring-buffer-write-char-sequence (ringbuf seq)
   (ring-buffer-write-byte-sequence ringbuf (map 'simple-vector #'char-code seq)))
