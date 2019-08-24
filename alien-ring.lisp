@@ -6,7 +6,7 @@
   ((read-index :initform 0 :type (unsigned-byte 32))
    (write-index :initform 0 :type (unsigned-byte 32))
    (capacity :initarg :capacity :accessor ring-buffer-capacity)
-   (buffer :initform (null-pointer))))
+   (buffer :initform (null-pointer) :reader ring-buffer-ptr)))
 
 (defmethod initialize-instance :after ((buf ring-buffer) &key)
   (with-slots (buffer capacity) buf
@@ -29,7 +29,7 @@
 	 (list (cons (ring-buffer-wr ringbuf) part1)
 	       (cons 0 (- max-allowed-write-size part1)))))
       (t (list (cons (ring-buffer-wr ringbuf)
-		     (- (ring-buffer-capacity ringbuf) (ring-buffer-wr ringbuf))))))))
+		     (- max-allowed-write-size (ring-buffer-wr ringbuf))))))))
 
 (defun ring-buffer-read-locations (ringbuf &optional (n (ring-buffer-size ringbuf)))
   (let ((max-allowed-read-size (min n (ring-buffer-size ringbuf))))
@@ -95,6 +95,9 @@
   (unless (zerop (ring-buffer-size ringbuf))
     (read-single-element ringbuf)))
 
+(defun ring-buffer-peek-byte (ringbuf &optional (n 0))
+  (peek-single-element ringbuf n))
+
 (defun ring-buffer-write-char (ringbuf char)
   (unless (zerop (ring-buffer-available ringbuf))
     (write-single-element ringbuf (char-code char))))
@@ -134,8 +137,10 @@
 		     ((and (integerp n) (>= n 0))
 		      (min (ring-buffer-size ringbuf) n))
 		     (t (ring-buffer-size ringbuf)))))
-    (loop for i from 0 below read-size
-       collect (read-single-element ringbuf))))
+    (let ((array (make-array read-size :element-type '(unsigned-byte 8))))
+      (loop for i from 0 below read-size
+	 do (setf (aref array i) (read-single-element ringbuf)))
+      array)))
 
 (defun read-line-cr-or-lf (ringbuf line-ending)
   (let ((navail (ring-buffer-size ringbuf)))
@@ -199,4 +204,6 @@
 (defun dump-ring-buffer-bytes (ringbuf)
   (with-slots (capacity buffer) ringbuf
     (loop for i from 0 below capacity
-       do (format t "~2,0x " (mem-aref buffer :uint8 i)))))
+       do
+	 (format t "~2,'0x " (mem-aref buffer :uint8 i)))
+    (terpri)))
