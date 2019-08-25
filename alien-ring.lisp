@@ -3,8 +3,8 @@
 (in-package #:alien-ring)
 
 (defclass ring-buffer ()
-  ((read-index :initform 0 :type (unsigned-byte 32))
-   (write-index :initform 0 :type (unsigned-byte 32))
+  ((read-index :initform 0 :type (unsigned-byte 32) :accessor read-index)
+   (write-index :initform 0 :type (unsigned-byte 32) :accessor write-index)
    (capacity :initarg :capacity :accessor ring-buffer-capacity)
    (buffer :initform (null-pointer) :reader ring-buffer-ptr)))
 
@@ -16,6 +16,10 @@
 
 (defun make-ring-buffer (size)
   (make-instance 'ring-buffer :capacity size))
+
+(defun free-ring-buffer (buf)
+  (foreign-free (slot-value buf 'buffer))
+  (setf (slot-value buf 'buffer) nil))
 
 (defun ring-buffer-alien (ringbuf)
   (slot-value ringbuf 'buffer))
@@ -132,14 +136,24 @@
 (defun ring-buffer-read-char-sequence (ringbuf &optional n)
   (map 'string #'code-char (ring-buffer-read-byte-sequence ringbuf n)))
 
-(defun ring-buffer-read-byte-sequence (ringbuf &optional n)
+(defun ring-buffer-read-byte-sequence (ringbuf &optional n dest)
+  (let ((read-size (cond
+		     ((and (integerp n) (>= n 0))
+		      (min (ring-buffer-size ringbuf) n))
+		     (t (ring-buffer-size ringbuf)))))
+    (let ((array (if dest dest (make-array read-size :element-type '(unsigned-byte 8)))))
+      (loop for i from 0 below read-size
+	 do (setf (aref array i) (read-single-element ringbuf)))
+      array)))
+
+(defun ring-buffer-peek-byte-sequence (ringbuf &optional n)
   (let ((read-size (cond
 		     ((and (integerp n) (>= n 0))
 		      (min (ring-buffer-size ringbuf) n))
 		     (t (ring-buffer-size ringbuf)))))
     (let ((array (make-array read-size :element-type '(unsigned-byte 8))))
       (loop for i from 0 below read-size
-	 do (setf (aref array i) (read-single-element ringbuf)))
+	 do (setf (aref array i) (peek-single-element ringbuf i)))
       array)))
 
 (defun read-line-cr-or-lf (ringbuf line-ending)

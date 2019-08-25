@@ -6,6 +6,8 @@
   :license  "BSD"
   :version "0.0.1"
   :serial t
-  :depends-on ("cffi")
+  :depends-on ("cffi"
+	       "trivial-gray-streams")
   :components ((:file "package")
-               (:file "alien-ring")))
+               (:file "alien-ring" :depends-on ("package"))
+	       (:file "streams" :depends-on ("alien-ring"))))
