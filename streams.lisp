@@ -25,8 +25,8 @@
   (declare (ignore start end))
   (ring-buffer-write-byte-sequence (stream-buffer stream) seq))
 
-(defmethod stream-read-sequence ((stream binary-ring-stream) seq &optional (start 0) (end nil))
-  (declare (ignore start end))
+(defmethod stream-read-sequence ((stream binary-ring-stream) seq &optional (start 0) end)
+  (declare (ignorable start end))
   (ring-buffer-read-byte-sequence (stream-buffer stream) (length seq) seq))
 
 (defmethod stream-read-byte ((stream binary-ring-stream))

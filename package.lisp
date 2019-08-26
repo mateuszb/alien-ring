@@ -42,4 +42,5 @@
 	   :stream-element-type
 	   :read-index
 	   :write-index
-	   :stream-peek-byte))
+	   :stream-peek-byte
+	   :stream-buffer))
