@@ -21,11 +21,11 @@
 	  (write-index ringbuf) (cdr position-spec))
     t))
 
-(defmethod stream-write-sequence ((stream binary-ring-stream) seq &optional (start 0) (end nil))
+(defmethod stream-write-sequence ((stream binary-ring-stream) seq start end)
   (declare (ignore start end))
   (ring-buffer-write-byte-sequence (stream-buffer stream) seq))
 
-(defmethod stream-read-sequence ((stream binary-ring-stream) seq &optional (start 0) end)
+(defmethod stream-read-sequence ((stream binary-ring-stream) seq start end)
   (declare (ignorable start end))
   (ring-buffer-read-byte-sequence (stream-buffer stream) (length seq) seq))
 
@@ -49,3 +49,14 @@
 (defun make-binary-ring-stream (size)
   (let ((buf (make-ring-buffer size)))
     (make-instance 'binary-ring-stream :buffer buf)))
+
+(defmacro with-output-to-byte-sequence ((var size) &body body)
+  (let ((resultvar (gensym)))
+    `(let ((,var (make-instance
+		  'binary-ring-stream
+		  :buffer (make-ring-buffer (expt 2 (ceiling (log ,size 2)))))))
+       ,@body
+       (let ((,resultvar (make-array ,size :element-type '(unsigned-byte 8))))
+	 (read-sequence ,resultvar ,var :end ,size)
+	 (close ,var)
+	 ,resultvar))))
