@@ -43,4 +43,5 @@
 	   :read-index
 	   :write-index
 	   :stream-peek-byte
+	   :stream-peek-char
 	   :stream-buffer))

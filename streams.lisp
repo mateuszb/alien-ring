@@ -35,6 +35,10 @@
 (defmethod stream-peek-byte ((stream binary-ring-stream) &optional (n 0))
   (ring-buffer-peek-byte (stream-buffer stream) n))
 
+(defmethod stream-peek-char ((stream binary-ring-stream) &optional (n 0))
+  (code-char
+   (ring-buffer-peek-byte (stream-buffer stream) n)))
+
 (defmethod stream-write-byte ((stream binary-ring-stream) integer)
   (ring-buffer-write-byte (stream-buffer stream) integer))
 
