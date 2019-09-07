@@ -112,7 +112,8 @@
 
 (defun peek-single-element (ringbuf &optional (offset 0))
   "Reads a single element at read-index + optional offset without advancing the read-index."
-  (assert (not (ring-buffer-empty-p ringbuf)))
+  (when (ring-buffer-empty-p ringbuf)
+    nil)
   (with-slots (buffer) ringbuf
     (mem-aref buffer :uint8 (ring-buffer-rd ringbuf offset))))
 
@@ -122,8 +123,10 @@
   (with-slots (buffer) ringbuf
     (code-char (mem-aref buffer :uint8 (ring-buffer-rd ringbuf offset)))))
 
-(defun ring-buffer-write-byte-sequence (ringbuf seq)
-  (let ((write-size (min (ring-buffer-available ringbuf) (length seq))))
+(defun ring-buffer-write-byte-sequence (ringbuf seq &optional (start 0) end)
+  (let ((write-size (min
+		     (ring-buffer-available ringbuf)
+		     (if (and end (> end 0)) (- end start) (length seq)))))
     (loop for elem across seq
        for i from 0 below write-size
        do

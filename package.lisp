@@ -3,11 +3,22 @@
 (defpackage #:alien-ring
   (:use #:cl :cffi)
 
+  #+off
+  (:import-from :sb-gray
+		:stream-write-string
+		:stream-read-sequence
+		:stream-write-sequence)
+  
   (:import-from :trivial-gray-streams
 		:fundamental-binary-output-stream
 		:fundamental-binary-input-stream
+		:fundamental-character-input-stream
+		:fundamental-character-output-stream
 		:stream-write-byte
-		:stream-read-byte)
+		:stream-read-byte
+		:stream-write-string
+		:stream-read-sequence
+		:stream-write-sequence)
   
   (:export :ring-buffer-read-line
 	   :ring-buffer-read-byte-sequence
@@ -37,6 +48,7 @@
 	   :stream-size
 	   :stream-read-sequence
 	   :stream-write-sequence
+	   :stream-write-string
 	   :stream-file-position
 	   :close
 	   :stream-element-type
@@ -44,4 +56,5 @@
 	   :write-index
 	   :stream-peek-byte
 	   :stream-peek-char
-	   :stream-buffer))
+	   :stream-buffer
+	   :with-output-to-byte-sequence))
