@@ -26,7 +26,6 @@
 
 (defmethod stream-write-sequence ((stream binary-ring-stream) seq start end &key)
   (declare (ignorable start end))
-  (format t "writing sequence '~a' from ~a to ~a~%" seq start end)
   (ring-buffer-write-byte-sequence (stream-buffer stream) seq start end)
   seq)
 
