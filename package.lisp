@@ -38,6 +38,7 @@
 	   :ring-buffer-write-byte
 	   :ring-buffer-read-token
 	   :ring-buffer-peek-char
+	   :ring-buffer-ptr
 	   :make-ring-buffer
 	   :dump-ring-buffer-characters
 	   :dump-ring-buffer-bytes
