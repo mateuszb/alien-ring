@@ -14,6 +14,7 @@
 		:fundamental-binary-input-stream
 		:fundamental-character-input-stream
 		:fundamental-character-output-stream
+		:stream-read-char
 		:stream-write-byte
 		:stream-read-byte
 		:stream-write-string
@@ -56,6 +57,6 @@
 	   :read-index
 	   :write-index
 	   :stream-peek-byte
-	   :stream-peek-char
+	   :stream-read-char
 	   :stream-buffer
 	   :with-output-to-byte-sequence))

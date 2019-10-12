@@ -38,6 +38,12 @@
   (stream-write-sequence stream (map 'simple-vector #'char-code s) start end)
   s)
 
+(defmethod stream-read-char ((stream binary-ring-stream))
+  (let ((char (stream-read-byte stream)))
+    (if char
+	(code-char char)
+	:eof)))
+
 (defmethod stream-read-byte ((stream binary-ring-stream))
   (ring-buffer-read-byte (stream-buffer stream)))
 
