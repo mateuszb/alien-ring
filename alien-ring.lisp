@@ -14,6 +14,14 @@
 		 (zerop (logand capacity (1- capacity)))))
     (setf buffer (foreign-alloc :uint8 :initial-element 0 :count capacity))))
 
+(defmethod print-object ((buf ring-buffer) stream)
+  (print-unreadable-object (buf stream :type t)
+    (with-slots (read-index write-index capacity) buf
+      (format stream "rd=~a, wr=~a, capacity=~a, free=~a, occupied=~a"
+	      read-index write-index capacity
+	      (ring-buffer-available buf)
+	      (ring-buffer-size buf)))))
+
 (defun make-ring-buffer (size)
   (make-instance 'ring-buffer :capacity size))
 
@@ -25,15 +33,18 @@
   (slot-value ringbuf 'buffer))
 
 (defun ring-buffer-write-locations (ringbuf n)
-  (let ((max-allowed-write-size (min n (ring-buffer-available ringbuf))))
+  (let* ((max-allowed-write-size (min n (ring-buffer-available ringbuf)))
+	 (capacity (ring-buffer-capacity ringbuf))
+	 (end (+ (ring-buffer-wr ringbuf) max-allowed-write-size)))
+    (assert (not (minusp max-allowed-write-size)))
     (cond
-      ((> (+ (ring-buffer-wr ringbuf) max-allowed-write-size)
-	  (ring-buffer-capacity ringbuf))
-       (let ((part1 (- (ring-buffer-capacity ringbuf) (ring-buffer-wr ringbuf))))
-	 (list (cons (ring-buffer-wr ringbuf) part1)
-	       (cons 0 (- max-allowed-write-size part1)))))
-      (t (list (cons (ring-buffer-wr ringbuf)
-		     (- max-allowed-write-size (ring-buffer-wr ringbuf))))))))
+      ((> end capacity)
+       (let* ((write1 (- capacity (ring-buffer-wr ringbuf)))
+	      (write2 (- max-allowed-write-size write1)))
+	 (list (cons (ring-buffer-wr ringbuf) write1)
+	       (cons 0 write2))))
+      (t
+       (list (cons (ring-buffer-wr ringbuf) n))))))
 
 (defun ring-buffer-read-locations (ringbuf &optional (n (ring-buffer-size ringbuf)))
   (let ((max-allowed-read-size (min n (ring-buffer-size ringbuf))))
