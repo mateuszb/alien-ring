@@ -6,6 +6,10 @@
 			      fundamental-character-input-stream)
   ((buffer :initform nil :initarg :buffer :reader stream-buffer)))
 
+(defmethod print-object ((s binary-ring-stream) stream)
+  (print-unreadable-object (s stream :type t)
+    (format stream "buffer=~a" (stream-buffer s))))
+
 (defmethod stream-element-type ((stream binary-ring-stream))
   '(unsigned-byte 8))
 
